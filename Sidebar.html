@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <base target="_top">
+    <link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
+    <!-- The CSS package above applies Google styling to buttons and other elements. -->
+
+</head>
+<body>
+<div class="sidebar branding-below">
+    <form>
+        <div class="block">
+            <input type="checkbox" id="enable">
+            <label for="enable">Enable submissions limit</label>
+        </div>
+        <div class="block form-group">
+            <label for="limit">
+                Limit
+            </label>
+            <input type="number" id="limit" min="1" max="1000">
+        </div>
+
+        <div class="block">
+            <input type="checkbox" id="automatically-close">
+            <label for="automatically-close">Automatically close the form when limit is reached</label>
+        </div>
+
+        <div class="block" id="button-bar">
+            <button class="action" id="apply">Apply</button>
+        </div>
+    </form>
+</div>
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js">
+</script>
+<script>
+   $(function() {
+       $('#apply').click(saveSettings);
+
+       google.script.run
+           .withSuccessHandler(loadSettings)
+           .withFailureHandler(showStatus)
+           .withUserObject($('#button-bar').get())
+           .getSettings();
+   });
+
+   function loadSettings(settings) {
+
+       $('#limit').val(Math.floor(settings.limit));
+
+       if (settings.enable === 'true') {
+           $('#enable').prop('checked', true);
+       }
+
+       if (settings.automaticallyClose === 'true') {
+           $('#automatically-close').prop('checked', true);
+       }
+   }
+
+
+   function showStatus(msg, element) {
+       var div = $('<div>')
+           .attr('id', 'status')
+           .attr('class','error')
+           .text(msg);
+       $(element).after(div);
+   }
+
+   function saveSettings() {
+       this.disabled = true;
+
+       $('div#status').remove();
+
+       var settings = {
+           'enable': $('#enable').is(':checked'),
+           'limit': parseInt($('#limit').val()),
+           'automaticallyClose': $('#automatically-close').is(':checked')
+       };
+
+       google.script.run
+           .withSuccessHandler(
+               function(msg, element) {
+                   showStatus('Saved', $('#button-bar'));
+                   element.disabled = false;
+               })
+           .withFailureHandler(
+               function(msg, element) {
+                   showStatus(msg, $('#button-bar'));
+                   element.disabled = false;
+               })
+           .withUserObject(this)
+           .saveSettings(settings);
+   }
+
+
+</script>
+</body>
+</html>
